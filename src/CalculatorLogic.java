@@ -11,26 +11,19 @@ public class CalculatorLogic {
 	private JTextArea prevCalc;
 	private int preOperator;
 	private final String[] OPERATORS = {"+", "-", "x", "\u00F7"};
-	private ArrayList<Double> operands = new OperandQueue();
-	private ArrayList<String> operators = new OperatorQueue();
+	private Double[][] history = new Double[5][];
+	private int histInd;
 	private double current,result,runningTotal;
 	private String prevCalcs = "";
 	private boolean decimalPoint,displayingResult,cleared;
 	
 	public CalculatorLogic(JTextField mainText, JTextArea prevCalc) {
-		initialize();
 		this.mainText = mainText;
 		this.prevCalc = prevCalc;
 		decimalPoint = false;
 		displayingResult = false;
 		cleared = true;
-		preOperator = -1;
-		mainText.setText("logic init");
-	}
-	
-	private void initialize() {
-		// TODO Auto-generated method stub
-		
+		histInd = 0;
 	}
 	
 	protected void setCleared(boolean b) {
@@ -53,8 +46,42 @@ public class CalculatorLogic {
 		this.decimalPoint = b;
 	}
 	
-	protected boolean getDecimalPoint(boolean b) {
+	protected boolean getDecimalPoint() {
 		return this.decimalPoint;
+	}
+	
+	protected Double[] getHistory() {
+		return this.history[histInd];
+	}
+	
+	protected Double[] getHistory(int i) {
+		return this.history[i];
+	}
+	
+	protected void setHistory(Double[] histArray) {
+		this.history[histInd] = histArray;
+	}
+	
+	protected int getHistInd() {
+		return this.histInd;
+	}
+	
+	protected void incrementHistInd() {
+		this.histInd = histInd + 1;
+	}
+	
+	protected void decrementHistInd() {
+		this.histInd = histInd - 1;
+	}
+	
+	protected boolean fullHistory() {
+		return history.length-1 == histInd;
+	}
+	
+	protected void rolloverHistory() {
+		for (int i = 1; i < history.length; i++) {
+			history[i-1] = history[i];
+		}
 	}
 	
 	private String replaceLastOperator(String prevCalcs, int operator) {
@@ -129,14 +156,23 @@ public class CalculatorLogic {
 		if (cleared && string != "0") {
 			if (string == ".") {
 				mainText.setText("0.0");
+				setDecimalPoint(true);
 				
 			} else {
 				mainText.setText(string);
 			}
 			setCleared(false);
 		} else {
-			String num = mainText.getText() + string;
-			mainText.setText(num);
+			if (string == ".") {
+				if (!getDecimalPoint()) {
+					String num = mainText.getText() + string;
+					mainText.setText(num);
+					setDecimalPoint(true);
+				} // Do nothing if decimal point there.
+			} else {
+				String num = mainText.getText() + string;
+				mainText.setText(num);
+			}
 		}
 	}
 	
@@ -146,9 +182,10 @@ public class CalculatorLogic {
 
 	public void clear() {
 		mainText.setText("0");
-		prevCalc.setText("HEre\nwe\nare\nmaking\nnew\nlines");
-		operators.clear();
-		operands.clear();
+		prevCalc.setText("");
+		history = new Double[5][];
+		histInd = 0;
+		setDecimalPoint(false);
 		setCleared(true);		
 	}
 

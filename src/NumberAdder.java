@@ -10,6 +10,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.Color;
 import javax.swing.JScrollPane;
+import javax.swing.border.MatteBorder;
+import java.awt.SystemColor;
 
 public class NumberAdder {
 
@@ -63,11 +65,13 @@ public class NumberAdder {
 		mainText.setColumns(10);
 		
 		JScrollPane scrollPane = new JScrollPane();
+		scrollPane.setViewportBorder(null);
 		scrollPane.setBounds(5, 11, 315, 44);
 		frmCalculator.getContentPane().add(scrollPane);
+		prevCalc.setBackground(SystemColor.inactiveCaptionBorder);
+		prevCalc.setRows(5);
 		scrollPane.setViewportView(prevCalc);
 		prevCalc.setEditable(false);
-		prevCalc.setRows(10);
 		
 		//Plus-Minus Button
 		JButton negative = new JButton("\u00B1");
