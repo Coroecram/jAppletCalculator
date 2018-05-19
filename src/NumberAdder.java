@@ -268,7 +268,7 @@ public class NumberAdder {
 		JButton divide = new JButton("\u00F7");
 		divide.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				logic.calculate(4);
+				logic.calculate(3);
 			}
 		});
 		divide.setFont(new Font("Arial", Font.BOLD, 14));

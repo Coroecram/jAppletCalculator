@@ -6,8 +6,9 @@ public class CalculatorLogic {
 	private JTextField mainText;
 	private JTextArea prevCalc;
 	private Double[][] history = new Double[5][];
-	private final String[] OPERATORS = new String[]{" + ", " - ", " x ", "\u00F7", "\u221A", " = "};
+	private final String[] OPERATORS = new String[]{" + ", " - ", " x ", " \u00F7 ", " \u221A ", " = "};
 	private int histInd;
+	private double lastCalc;
 	private boolean decimalPoint,displayingResult,cleared,histCleared;
 	
 	public CalculatorLogic(JTextField mainText, JTextArea prevCalc) {
@@ -22,7 +23,7 @@ public class CalculatorLogic {
 	
 	private void clearHistory() {
 		for (int i = 0; i < history.length; i ++) {
-			history[i] = new Double[]{(double) 0, (double) 0, (double) 0 , (double) 0};
+			history[i] = new Double[]{(double) -1, (double) 0, (double) 0 , (double) 0};
 		}
 		histCleared = true;
 		histInd = 0;
@@ -99,30 +100,24 @@ public class CalculatorLogic {
 	}
 	
 	protected void calculate(int operator) {
-		Double.parseDouble(mainText.getText());
 		// History array key: { Operator Code, First Operand, Second Operand, Result };
 		// Operator Code: {0: +, 1: -, 2: *, 3: /, 4: sqrt, 5: =}		
 		if (getCleared()) {
 			return;
-		} else if (!getCleared() && getHistCleared()) {
+		} else if (!getCleared()  && getHistCleared()) {
 			//Set operator
 			history[histInd][0] = (double) operator;
 			// Set first operand
 			history[histInd][1] = Double.parseDouble(mainText.getText());
 			setHistCleared(false);
-		} else if (history[histInd][0] % 4 == 0) {
-				if (operator == 4) {
-					String squares = "" + history[histInd][0] + "4";
-					history[histInd][0] = Double.parseDouble(squares);
-					calcRow();
-				} else if (getDisplayingResult()) {
-					incrementHistInd();
-					history[histInd][0] = (double) operator;
-					history[histInd][1] = Double.parseDouble(mainText.getText());
-				}
+		} else if (history[histInd][0] > 0 && history[histInd][0] % 4 == 0) {
+			String squares = "" + history[histInd][0] + "4";
+			history[histInd][0] = Double.parseDouble(squares);
+			history[histInd][1] = Double.parseDouble(mainText.getText());
+			calcRows();
 		} else {
 			history[histInd][2] = Double.parseDouble(mainText.getText());
-			calcRow();
+			calcRows();
 			incrementHistInd();
 			history[histInd][0] = (double) operator;
 			history[histInd][1] = history[histInd-1][3];
@@ -131,24 +126,52 @@ public class CalculatorLogic {
 		setDisplays();
 	}
 
-	private void calcRow() {
-		int operator = history[histInd][0].intValue();
-		
-		switch(operator) {
-		case(0):
-			history[histInd][3] = history[histInd][1] + history[histInd][2];
-		case(1):
-			history[histInd][3] = history[histInd][1] - history[histInd][2];
-		case(2):
-			history[histInd][3] = history[histInd][1] * history[histInd][2];
-		case(3):
-			history[histInd][3] = history[histInd][1] / history[histInd][2];
-		case(4):
-			history[histInd][3] = calcNestSqrtDbl(history[histInd][0], history[histInd][1]);
-		case(5):
-			history[histInd][3] = history[histInd][1];
-		default:
-			
+	private void calcRows() {
+		for (int i = 0; i < history.length; i++) {
+			int operator = history[i][0].intValue();
+			System.out.println("operator: " + operator);
+			switch(operator) {
+				case(-1):
+					break;
+				case(0):
+					System.out.println("0");
+					lastCalc = history[i][1] + history[i][2];
+					history[i][3] = lastCalc;
+					setHistCleared(false);
+					break;
+				case(1):
+					System.out.println("1");
+					lastCalc = history[i][1] - history[i][2];
+					history[i][3] = lastCalc;
+					setHistCleared(false);
+					break;
+				case(2):
+					System.out.println("2");
+					lastCalc = history[i][1] * history[i][2];
+					System.out.println("lastCalc: " + history[i][1] * history[i][2]);
+					history[i][3] = lastCalc;
+					setHistCleared(false);
+					break;
+				case(3):
+					System.out.println("3");
+					lastCalc = history[i][1] / history[i][2];
+					history[i][3] = lastCalc;
+					setHistCleared(false);
+					break;
+				case(4):
+					System.out.println("4");
+					lastCalc = calcNestSqrtDbl(history[i][0], history[i][1]);
+					history[i][3] = lastCalc;
+					setHistCleared(false);
+					break;
+				case(5):
+					System.out.println("5");
+					history[i][3] = lastCalc;
+					setHistCleared(true);
+					break;
+				default:
+				
+			}
 		}
 	}
 
@@ -163,42 +186,45 @@ public class CalculatorLogic {
 
 	private void setDisplays() {
 		StringBuilder historicalText = new StringBuilder();
-		int operator = -1;
+		String mainDisplay = "0";
+		int operator;
 		double firstOperand;
 		double secondOperand;
-		double result = 0;
+		
 		for (int i = 0; i < history.length; i++) {
-			if (operator == 0) {
+			if (history[i][0] == -1) {
 				break;
 			}
 			operator = history[i][0].intValue();
-			firstOperand = history[i][1].intValue();
-			secondOperand = history[i][2].intValue();
-			result = history[i][3].intValue();
-			
-			historicalText.append(firstOperand);
-			historicalText.append(OPERATORS[operator]);
-			historicalText.append(secondOperand);
 			if (operator > 4) {
 				if (operator == 4) {
 					String sqrtNestString = calcSqrtNestString(history[i][0], history[i][1]);
 					historicalText.append(sqrtNestString);
-					result = history[i][3];
+					mainDisplay = "" + history[i][3];
 				} else if (operator == 5) {
-					result = history[i][3];
+					calcRows();
+					System.out.println("i: " + i + "total: " + history[i][3]);
+					mainDisplay = "" + history[i][3];
 				}
+				mainDisplay = "" + history[i][3];
+			} else { 
+				setDisplayingResult(true);
+				firstOperand = history[i][1].intValue();
+				mainDisplay = "" + history[i][1];
+				historicalText.append(firstOperand);
+				historicalText.append(OPERATORS[operator]);
+			}
+			if (i + 1 < history.length && history[i+1][0] != -1) {
+				secondOperand = history[i][2].intValue();
+				historicalText.append(secondOperand);
 			}
 			if (i < history.length -1) {
 				historicalText.append("\n");
 			}
 		}
 		
-		if (operator >= 4) {
-			setDisplayingResult(true);
-		}
-		
 		prevCalc.setText(historicalText.toString());
-		mainText.setText("" + result);	
+		mainText.setText(mainDisplay);
 	}
 
 	private String calcSqrtNestString(Double operators, Double operand) {
@@ -212,7 +238,7 @@ public class CalculatorLogic {
 	}
 
 	public void button(String string) {
-		if (cleared && string != "0") {
+		if (getDisplayingResult() || cleared && string != "0") {
 			if (string == ".") {
 				mainText.setText("0.0");
 				setDecimalPoint(true);
@@ -221,22 +247,31 @@ public class CalculatorLogic {
 				mainText.setText(string);
 			}
 			setCleared(false);
+			setDisplayingResult(false);
 		} else {
-			if (string == ".") {
-				if (!getDecimalPoint()) {
+				if (string == ".") {
+					if (!getDecimalPoint()) {
+						String num = mainText.getText() + string;
+						mainText.setText(num);
+						setDecimalPoint(true);
+					} // Do nothing if decimal point there.
+				} else {
 					String num = mainText.getText() + string;
 					mainText.setText(num);
-					setDecimalPoint(true);
-				} // Do nothing if decimal point there.
-			} else {
-				String num = mainText.getText() + string;
-				mainText.setText(num);
-			}
+				}
 		}
 	}
 	
 	public void equals() {
-		
+		if (getDisplayingResult()) {
+			return;
+		} else {
+			history[histInd][2] = Double.parseDouble(mainText.getText());
+			incrementHistInd();
+			history[histInd][0] = (double) 5;
+			calcRows();
+			setDisplays();
+		}
 	}
 
 	public void clear() {
@@ -250,7 +285,7 @@ public class CalculatorLogic {
 
 	public void backspace() {		
 		int length = mainText.getText().length();
-		if (length > 0) {
+		if (length > 0 && !getDisplayingResult()) {
 			StringBuilder sb = new StringBuilder(mainText.getText());
 			sb.deleteCharAt(length-1);
 			mainText.setText(sb.toString());
