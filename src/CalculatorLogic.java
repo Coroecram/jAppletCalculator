@@ -109,9 +109,10 @@ public class CalculatorLogic {
 			history[histInd][0] = (double) operator;
 			// Set first operand
 			history[histInd][1] = Double.parseDouble(mainText.getText());
+			calcRows();
 			setHistCleared(false);
 		} else if (history[histInd][0] > 0 && history[histInd][0] % 4 == 0) {
-			String squares = "" + history[histInd][0] + "4";
+			String squares = "" + history[histInd][0].intValue() + "4";
 			history[histInd][0] = Double.parseDouble(squares);
 			history[histInd][1] = Double.parseDouble(mainText.getText());
 			calcRows();
@@ -123,12 +124,17 @@ public class CalculatorLogic {
 			history[histInd][1] = history[histInd-1][3];
 		}
 		
+		setDecimalPoint(false);
 		setDisplays();
 	}
 
 	private void calcRows() {
 		for (int i = 0; i < history.length; i++) {
 			int operator = history[i][0].intValue();
+			//Remove extra 4s from nested sqrt
+			while (operator > 10) {
+				operator = operator / 10;
+			}
 			System.out.println("operator: " + operator);
 			switch(operator) {
 				case(-1):
@@ -159,8 +165,9 @@ public class CalculatorLogic {
 					setHistCleared(false);
 					break;
 				case(4):
-					System.out.println("4");
-					lastCalc = calcNestSqrtDbl(history[i][0], history[i][1]);
+					lastCalc = calcNestSqrtDbl(history[i][0].intValue(), history[i][1]);
+					System.out.println("square calc: " + lastCalc);
+					System.out.println("operator: " + history[i][0]);
 					history[i][3] = lastCalc;
 					setHistCleared(false);
 					break;
@@ -175,8 +182,10 @@ public class CalculatorLogic {
 		}
 	}
 
-	private Double calcNestSqrtDbl(Double operators, Double value) {
+	private Double calcNestSqrtDbl(int operators, Double value) {
+		System.out.println("nested sqrt: " + operators);
 		int numSqrt = ("" + operators).length();
+		
 		for (int i = 0; i <= numSqrt; i++) {
 			value = Math.sqrt(value);
 		}
@@ -209,13 +218,13 @@ public class CalculatorLogic {
 				mainDisplay = "" + history[i][3];
 			} else { 
 				setDisplayingResult(true);
-				firstOperand = history[i][1].intValue();
+				firstOperand = history[i][1];
 				mainDisplay = "" + history[i][1];
 				historicalText.append(firstOperand);
 				historicalText.append(OPERATORS[operator]);
 			}
 			if (i + 1 < history.length && history[i+1][0] != -1) {
-				secondOperand = history[i][2].intValue();
+				secondOperand = history[i][2];
 				historicalText.append(secondOperand);
 			}
 			if (i < history.length -1) {
@@ -240,7 +249,7 @@ public class CalculatorLogic {
 	public void button(String string) {
 		if (getDisplayingResult() || cleared && string != "0") {
 			if (string == ".") {
-				mainText.setText("0.0");
+				mainText.setText("0.");
 				setDecimalPoint(true);
 				
 			} else {
