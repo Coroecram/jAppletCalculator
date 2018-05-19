@@ -165,7 +165,11 @@ public class CalculatorLogic {
 					setHistCleared(false);
 					break;
 				case(4):
-					lastCalc = calcNestSqrtDbl(history[i][0].intValue(), history[i][1]);
+					//Hold the root for the nested string
+					if (history[i][2] == 0) {
+						history[i][2] = history[i][1];
+					}
+					lastCalc = calcNestSqrtDbl(history[i][0].intValue(), history[i][2]);
 					System.out.println("square calc: " + lastCalc);
 					System.out.println("operator: " + history[i][0]);
 					history[i][3] = lastCalc;
@@ -185,8 +189,7 @@ public class CalculatorLogic {
 	private Double calcNestSqrtDbl(int operators, Double value) {
 		System.out.println("nested sqrt: " + operators);
 		int numSqrt = ("" + operators).length();
-		
-		for (int i = 0; i <= numSqrt; i++) {
+		for (int i = 0; i < numSqrt; i++) {
 			value = Math.sqrt(value);
 		}
 		
@@ -205,11 +208,13 @@ public class CalculatorLogic {
 				break;
 			}
 			operator = history[i][0].intValue();
-			if (operator > 4) {
-				if (operator == 4) {
-					String sqrtNestString = calcSqrtNestString(history[i][0], history[i][1]);
+			if (operator >= 4) {
+				if (operator % 4 == 0) {
+					String sqrtNestString = calcSqrtNestString(history[i][0].intValue(), history[i][2]);
+					System.out.println("210 sqrtNestString: " + sqrtNestString);
 					historicalText.append(sqrtNestString);
 					mainDisplay = "" + history[i][3];
+					setDisplayingResult(true);
 				} else if (operator == 5) {
 					calcRows();
 					System.out.println("i: " + i + "total: " + history[i][3]);
@@ -236,10 +241,10 @@ public class CalculatorLogic {
 		mainText.setText(mainDisplay);
 	}
 
-	private String calcSqrtNestString(Double operators, Double operand) {
+	private String calcSqrtNestString(int operators, Double base) {
 		int numSqrt = ("" + operators).length();
-		String nested = "" + operand;
-		for (int i = 0; i <= numSqrt; i++) {
+		String nested = "" + base;
+		for (int i = 1; i <= numSqrt; i++) {
 			nested = "\u221A" + "(" + nested + ")";
 		}
 		
