@@ -1,5 +1,4 @@
-import java.util.Arrays;
-
+import java.util.ArrayList;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
@@ -7,7 +6,7 @@ public class CalculatorLogic {
 
 	private JTextField mainText;
 	private JTextArea prevCalc;
-	private Double[][] history = new Double[5][];
+	private ArrayList<Double[]> history = new ArrayList<Double[]>();
 	private final String[] OPERATORS = new String[]{" + ", " - ", " x ", " \u00F7 ", " \u221A ", " = "};
 	private int histInd;
 	private int prevOp = -1;
@@ -21,12 +20,12 @@ public class CalculatorLogic {
 		displayingResult = false;
 		cleared = true;
 		clearHistory();
-		//mainText.setText("" + history[histInd][3]);
+		//mainText.setText("" + getHistory(histInd)[3]);
 	}
 	
 	private void clearHistory() {
-		for (int i = 0; i < history.length; i ++) {
-			history[i] = new Double[]{(double) -1, (double) 0, (double) 0 , (double) 0};
+		for (int i = 0; i < 999; i ++) {
+			history.add(new Double[]{(double) -1, (double) 0, (double) 0 , (double) 0});
 		}
 		histCleared = true;
 		histInd = 0;
@@ -56,16 +55,12 @@ public class CalculatorLogic {
 		return this.decimalPoint;
 	}
 	
-	protected Double[] getHistory() {
-		return this.history[histInd];
+	protected Double[] getCurrentHistory() {
+		return this.history.get(histInd);
 	}
 	
 	protected Double[] getHistory(int i) {
-		return this.history[i];
-	}
-	
-	protected void setHistory(Double[] histArray) {
-		this.history[histInd] = histArray;
+		return this.history.get(i);
 	}
 	
 	private boolean getHistCleared() {
@@ -81,11 +76,7 @@ public class CalculatorLogic {
 	}
 	
 	protected void incrementHistInd() {
-		if (fullHistory()) {
-			rolloverHistory();
-		} else {
-			this.histInd = histInd + 1;
-		}
+		this.histInd = histInd + 1;
 	}
 	
 	protected void decrementHistInd() {
@@ -93,14 +84,9 @@ public class CalculatorLogic {
 	}
 	
 	protected boolean fullHistory() {
-		return history.length-1 == histInd;
+		return history.size()-1 == histInd;
 	}
 	
-	protected void rolloverHistory() {
-		for (int i = 1; i < history.length; i++) {
-			history[i-1] = history[i];
-		}
-	}
 	
 	protected void calculate(int operator) {
 		// History array key: { Operator Code, First Operand, Second Operand, Result };
@@ -111,33 +97,33 @@ public class CalculatorLogic {
 		} else if (prevOp == -1) {
 			System.out.println("are: " + prevOp);
 			//Set operator
-			history[histInd][0] = (double) operator;
+			getHistory(histInd)[0] = (double) operator;
 			// Set first operand
-			history[histInd][1] = Double.parseDouble(mainText.getText());
+			getHistory(histInd)[1] = Double.parseDouble(mainText.getText());
 			calcRows();
 			prevOp = operator;
 		} else if (sqrtOperand((double) operator)) {
 			System.out.println("119 histInd: " + histInd);
 			String squares = "4";
 			if (prevOp == 4) {
-				squares = "" + history[histInd][0].intValue() + "4";
+				squares = "" + getHistory(histInd)[0].intValue() + "4";
 			}
-			history[histInd][0] = Double.parseDouble(squares);
-			System.out.println("127history[histInd][0] " + history[histInd][0].intValue());
-			history[histInd][1] = Double.parseDouble(mainText.getText());
+			getHistory(histInd)[0] = Double.parseDouble(squares);
+			System.out.println("127getHistory(histInd)[0] " + getHistory(histInd)[0].intValue());
+			getHistory(histInd)[1] = Double.parseDouble(mainText.getText());
 			calcRows();
 			setHistCleared(false);
 			prevOp = 4;
 		} else {
 			System.out.println("else");
 			if(prevOp != 4) {
-				history[histInd][2] = Double.parseDouble(mainText.getText());
+				getHistory(histInd)[2] = Double.parseDouble(mainText.getText());
 			}
 			calcRows();
 			incrementHistInd();
 			prevOp = operator;
-			history[histInd][0] = (double) operator;
-			history[histInd][1] = history[histInd-1][3];
+			getHistory(histInd)[0] = (double) operator;
+			getHistory(histInd)[1] = getHistory(histInd-1)[3];
 		}
 		
 		setDecimalPoint(false);
@@ -145,55 +131,56 @@ public class CalculatorLogic {
 	}
 
 	private void calcRows() {
-		for (int i = 0; i < history.length; i++) {
-			int operator = history[i][0].intValue();
+		for (int i = 0; i < history.size(); i++) {
+			int operator = getHistory(i)[0].intValue();
+			if (operator == -1) {
+				break;
+			}
 			//Remove extra 4s from nested sqrt
 			while (operator > 10) {
 				operator = operator % 10;
 			}
 			System.out.println("operator: " + operator);
 			switch(operator) {
-				case(-1):
-					break;
 				case(0):
 					System.out.println("0");
-					lastCalc = history[i][1] + history[i][2];
-					history[i][3] = lastCalc;
+					lastCalc = getHistory(i)[1] + getHistory(i)[2];
+					getHistory(i)[3] = lastCalc;
 					setHistCleared(false);
 					continue;
 				case(1):
 					System.out.println("1");
-					lastCalc = history[i][1] - history[i][2];
-					history[i][3] = lastCalc;
+					lastCalc = getHistory(i)[1] - getHistory(i)[2];
+					getHistory(i)[3] = lastCalc;
 					setHistCleared(false);
 					continue;
 				case(2):
 					System.out.println("2");
-					lastCalc = history[i][1] * history[i][2];
-					history[i][3] = lastCalc;
+					lastCalc = getHistory(i)[1] * getHistory(i)[2];
+					getHistory(i)[3] = lastCalc;
 					setHistCleared(false);
 					continue;
 				case(3):
 					System.out.println("3");
-					lastCalc = history[i][1] / history[i][2];
-					history[i][3] = lastCalc;
+					lastCalc = getHistory(i)[1] / getHistory(i)[2];
+					getHistory(i)[3] = lastCalc;
 					setHistCleared(false);
 					continue;
 				case(4):
 					//Hold the root for the nested string
 					System.out.println("4");
-					if (history[i][2] == 0) {
-						history[i][2] = history[i][1];
+					if (getHistory(i)[2] == 0) {
+						getHistory(i)[2] = getHistory(i)[1];
 					}
-					Double root = history[i][2];
-					lastCalc = calcNestSqrtDbl(history[i][0].intValue(), root);
+					Double root = getHistory(i)[2];
+					lastCalc = calcNestSqrtDbl(getHistory(i)[0].intValue(), root);
 					System.out.println("176 lastCalc" + lastCalc);
-					history[i][3] = lastCalc;
+					getHistory(i)[3] = lastCalc;
 					setHistCleared(false);
 					continue;
 				case(5):
 					System.out.println("5");
-					history[i][3] = lastCalc;
+					getHistory(i)[3] = lastCalc;
 					setHistCleared(true);
 					continue;
 				default:
@@ -218,34 +205,34 @@ public class CalculatorLogic {
 		double firstOperand;
 		double secondOperand;
 		
-		for (int i = 0; i < history.length; i++) {
-			if (history[i][0] == -1) {
+		for (int i = 0; i < history.size(); i++) {
+			if (getHistory(i)[0] == -1) {
 				break;
 			}
-			operator = history[i][0].intValue();
+			operator = getHistory(i)[0].intValue();
 			if (operator >= 4) {
 				if (operator % 4 == 0) {
-					String sqrtNestString = calcSqrtNestString(history[i][0].intValue(), history[i][2]);
+					String sqrtNestString = calcSqrtNestString(getHistory(i)[0].intValue(), getHistory(i)[2]);
 					historicalText.append(sqrtNestString);
-					mainDisplay = "" + history[i][3];
+					mainDisplay = "" + getHistory(i)[3];
 					setDisplayingResult(true);
 				} else if (operator == 5) {
 					calcRows();
-					mainDisplay = "" + history[i][3];
+					mainDisplay = "" + getHistory(i)[3];
 				}
-				mainDisplay = "" + history[i][3];
+				mainDisplay = "" + getHistory(i)[3];
 			} else { 
 				setDisplayingResult(true);
-				firstOperand = history[i][1];
-				mainDisplay = "" + history[i][1];
+				firstOperand = getHistory(i)[1];
+				mainDisplay = "" + getHistory(i)[1];
 				historicalText.append(firstOperand);
 				historicalText.append(OPERATORS[operator]);
 			}
-			if (!sqrtOperand(history[i][0]) && i + 1 < history.length && history[i+1][0] != -1) {
-				secondOperand = history[i][2];
+			if (!sqrtOperand(getHistory(i)[0]) && i + 1 < history.size() && getHistory(i+1)[0] != -1) {
+				secondOperand = getHistory(i)[2];
 				historicalText.append(secondOperand);
 			}
-			if (i < history.length -1) {
+			if (i < history.size() -1) {
 				historicalText.append("\n");
 			}
 		}
@@ -301,9 +288,9 @@ public class CalculatorLogic {
 		if (getDisplayingResult()) {
 			return;
 		} else {
-			history[histInd][2] = Double.parseDouble(mainText.getText());
+			getHistory(histInd)[2] = Double.parseDouble(mainText.getText());
 			incrementHistInd();
-			history[histInd][0] = (double) 5;
+			getHistory(histInd)[0] = (double) 5;
 			calcRows();
 			setDisplays();
 		}
@@ -333,7 +320,7 @@ public class CalculatorLogic {
 			Double negatedVal = 0 - Double.parseDouble(mainText.getText());
 			mainText.setText("" + negatedVal);
 			if (!getHistCleared()) {
-				history[histInd][3] = negatedVal;
+				getHistory(histInd)[3] = negatedVal;
 			}
 		}
 		
