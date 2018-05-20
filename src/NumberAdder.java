@@ -77,7 +77,7 @@ public class NumberAdder {
 		JButton negative = new JButton("\u00B1");
 		negative.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				logic.negative();
+				logic.negate();
 			}
 		});
 		negative.setFont(new Font("Arial", Font.BOLD, 14));

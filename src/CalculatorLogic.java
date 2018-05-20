@@ -1,3 +1,5 @@
+import java.util.Arrays;
+
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
@@ -8,6 +10,7 @@ public class CalculatorLogic {
 	private Double[][] history = new Double[5][];
 	private final String[] OPERATORS = new String[]{" + ", " - ", " x ", " \u00F7 ", " \u221A ", " = "};
 	private int histInd;
+	private int prevOp = -1;
 	private double lastCalc;
 	private boolean decimalPoint,displayingResult,cleared,histCleared;
 	
@@ -101,25 +104,38 @@ public class CalculatorLogic {
 	
 	protected void calculate(int operator) {
 		// History array key: { Operator Code, First Operand, Second Operand, Result };
-		// Operator Code: {0: +, 1: -, 2: *, 3: /, 4: sqrt, 5: =}		
+		// Operator Code: {0: +, 1: -, 2: *, 3: /, 4: sqrt, 5: =}
+		System.out.println("calc operator: " + operator);
 		if (getCleared()) {
 			return;
-		} else if (!getCleared()  && getHistCleared()) {
+		} else if (prevOp == -1) {
+			System.out.println("are: " + prevOp);
 			//Set operator
 			history[histInd][0] = (double) operator;
 			// Set first operand
 			history[histInd][1] = Double.parseDouble(mainText.getText());
 			calcRows();
-			setHistCleared(false);
-		} else if (history[histInd][0] > 0 && history[histInd][0] % 4 == 0) {
-			String squares = "" + history[histInd][0].intValue() + "4";
+			prevOp = operator;
+		} else if (sqrtOperand((double) operator)) {
+			System.out.println("119 histInd: " + histInd);
+			String squares = "4";
+			if (prevOp == 4) {
+				squares = "" + history[histInd][0].intValue() + "4";
+			}
 			history[histInd][0] = Double.parseDouble(squares);
+			System.out.println("127history[histInd][0] " + history[histInd][0].intValue());
 			history[histInd][1] = Double.parseDouble(mainText.getText());
 			calcRows();
+			setHistCleared(false);
+			prevOp = 4;
 		} else {
-			history[histInd][2] = Double.parseDouble(mainText.getText());
+			System.out.println("else");
+			if(prevOp != 4) {
+				history[histInd][2] = Double.parseDouble(mainText.getText());
+			}
 			calcRows();
 			incrementHistInd();
+			prevOp = operator;
 			history[histInd][0] = (double) operator;
 			history[histInd][1] = history[histInd-1][3];
 		}
@@ -133,7 +149,7 @@ public class CalculatorLogic {
 			int operator = history[i][0].intValue();
 			//Remove extra 4s from nested sqrt
 			while (operator > 10) {
-				operator = operator / 10;
+				operator = operator % 10;
 			}
 			System.out.println("operator: " + operator);
 			switch(operator) {
@@ -144,55 +160,54 @@ public class CalculatorLogic {
 					lastCalc = history[i][1] + history[i][2];
 					history[i][3] = lastCalc;
 					setHistCleared(false);
-					break;
+					continue;
 				case(1):
 					System.out.println("1");
 					lastCalc = history[i][1] - history[i][2];
 					history[i][3] = lastCalc;
 					setHistCleared(false);
-					break;
+					continue;
 				case(2):
 					System.out.println("2");
 					lastCalc = history[i][1] * history[i][2];
-					System.out.println("lastCalc: " + history[i][1] * history[i][2]);
 					history[i][3] = lastCalc;
 					setHistCleared(false);
-					break;
+					continue;
 				case(3):
 					System.out.println("3");
 					lastCalc = history[i][1] / history[i][2];
 					history[i][3] = lastCalc;
 					setHistCleared(false);
-					break;
+					continue;
 				case(4):
 					//Hold the root for the nested string
+					System.out.println("4");
 					if (history[i][2] == 0) {
 						history[i][2] = history[i][1];
 					}
-					lastCalc = calcNestSqrtDbl(history[i][0].intValue(), history[i][2]);
-					System.out.println("square calc: " + lastCalc);
-					System.out.println("operator: " + history[i][0]);
+					Double root = history[i][2];
+					lastCalc = calcNestSqrtDbl(history[i][0].intValue(), root);
+					System.out.println("176 lastCalc" + lastCalc);
 					history[i][3] = lastCalc;
 					setHistCleared(false);
-					break;
+					continue;
 				case(5):
 					System.out.println("5");
 					history[i][3] = lastCalc;
 					setHistCleared(true);
-					break;
+					continue;
 				default:
 				
 			}
 		}
 	}
 
-	private Double calcNestSqrtDbl(int operators, Double value) {
-		System.out.println("nested sqrt: " + operators);
+	private Double calcNestSqrtDbl(int operators, Double root) {
 		int numSqrt = ("" + operators).length();
+		Double value = root;
 		for (int i = 0; i < numSqrt; i++) {
 			value = Math.sqrt(value);
 		}
-		
 		return value;
 	}
 
@@ -211,13 +226,11 @@ public class CalculatorLogic {
 			if (operator >= 4) {
 				if (operator % 4 == 0) {
 					String sqrtNestString = calcSqrtNestString(history[i][0].intValue(), history[i][2]);
-					System.out.println("210 sqrtNestString: " + sqrtNestString);
 					historicalText.append(sqrtNestString);
 					mainDisplay = "" + history[i][3];
 					setDisplayingResult(true);
 				} else if (operator == 5) {
 					calcRows();
-					System.out.println("i: " + i + "total: " + history[i][3]);
 					mainDisplay = "" + history[i][3];
 				}
 				mainDisplay = "" + history[i][3];
@@ -228,7 +241,7 @@ public class CalculatorLogic {
 				historicalText.append(firstOperand);
 				historicalText.append(OPERATORS[operator]);
 			}
-			if (i + 1 < history.length && history[i+1][0] != -1) {
+			if (!sqrtOperand(history[i][0]) && i + 1 < history.length && history[i+1][0] != -1) {
 				secondOperand = history[i][2];
 				historicalText.append(secondOperand);
 			}
@@ -239,6 +252,14 @@ public class CalculatorLogic {
 		
 		prevCalc.setText(historicalText.toString());
 		mainText.setText(mainDisplay);
+	}
+
+	private boolean sqrtOperand(Double operand) {
+		if (operand == 0) {
+			return false;
+		} else {
+			return operand % 4 == 0;
+		}
 	}
 
 	private String calcSqrtNestString(int operators, Double base) {
@@ -291,6 +312,7 @@ public class CalculatorLogic {
 	public void clear() {
 		mainText.setText("0");
 		prevCalc.setText("");
+		prevOp = -1;
 		clearHistory();
 		setDisplayingResult(false);
 		setDecimalPoint(false);
@@ -306,9 +328,13 @@ public class CalculatorLogic {
 		}
 	}
 
-	public void negative() {
+	public void negate() {
 		if (!cleared) {
-			
+			Double negatedVal = 0 - Double.parseDouble(mainText.getText());
+			mainText.setText("" + negatedVal);
+			if (!getHistCleared()) {
+				history[histInd][3] = negatedVal;
+			}
 		}
 		
 	}
