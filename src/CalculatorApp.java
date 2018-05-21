@@ -42,7 +42,7 @@ public class CalculatorApp {
 	public CalculatorApp() {
 		initialize();
 		histCalcs = new HistoricalCalculations();
-		dispManager = new DisplayManager(mainText, histView, histCalcs);
+		dispManager = new DisplayManager(mainText, histView);
 		calcManager = new CalcManager(dispManager, histCalcs);
 	}
 
@@ -66,6 +66,7 @@ public class CalculatorApp {
 		frmCalculator.getContentPane().add(mainText);
 		mainText.setColumns(10);
 		
+		histView = new JTextArea();
 		JScrollPane scrollPane = new JScrollPane();
 		scrollPane.setViewportBorder(null);
 		scrollPane.setBounds(5, 11, 315, 44);
@@ -236,6 +237,16 @@ public class CalculatorApp {
 		multiply.setBounds(245, 190, 75, 50);
 		frmCalculator.getContentPane().add(multiply);
 		
+		JButton divide = new JButton("\u00F7");
+		divide.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				calcManager.button(3);
+			}
+		});
+		divide.setFont(new Font("Arial", Font.BOLD, 14));
+		divide.setBounds(245, 135, 75, 50);
+		frmCalculator.getContentPane().add(divide);
+		
 		//SquareRoot Button
 		JButton squareroot = new JButton("\u221A");
 		squareroot.addActionListener(new ActionListener() {
@@ -266,15 +277,6 @@ public class CalculatorApp {
 		backspace.setFont(new Font("Arial", Font.BOLD, 14));
 		backspace.setBounds(165, 135, 75, 50);
 		frmCalculator.getContentPane().add(backspace);
-		
-		JButton divide = new JButton("\u00F7");
-		divide.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				calcManager.button(3);
-			}
-		});
-		divide.setFont(new Font("Arial", Font.BOLD, 14));
-		divide.setBounds(245, 135, 75, 50);
-		frmCalculator.getContentPane().add(divide);
+
 	}
 }

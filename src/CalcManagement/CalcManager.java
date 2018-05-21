@@ -37,6 +37,7 @@ public class CalcManager {
 		} else {
 			notFirstEntry(string);
 		}
+		
 		updateDisplays();
 	}
 	
@@ -154,16 +155,18 @@ public class CalcManager {
 		workset[1][3] = result; // Put in result
 		workset[1][4] = 1.0; // Row is modified
 		workset[0] = Arrays.copyOf(workset[1], 5);
-		pushWorkset(workset[0]);
+		pushWorkset(workset[0], 0);
 		incrementHistInd();
 		workset[1] = new Double[]{null, null, null, null, 1.0}; // New row, modified (1.0) from nothing.
 		workset[1][0] = (double) operator;
 		workset[1][1] = workset[0][3];
-		pushWorkset(workset[1]);
+		pushWorkset(workset[1], 1);
 	}
 
-	private void pushWorkset(Double[] workset) {
-		histCalcs.append(workset, histInd);		
+	private void pushWorkset(Double[] workset, int ind) {
+		histCalcs.append(workset, histInd);
+		histCalcs.addModification(histInd, ind);
+		histCalcs.setModified(true);
 	}
 
 	private Double executeCurrentOp() {
@@ -286,14 +289,6 @@ public class CalcManager {
 		return value;
 	}
 	
-	private boolean sqrtOperand(Double operand) {
-		if (operand == 0) {
-			return false;
-		} else {
-			return operand % 4 == 0;
-		}
-	}
-
 	private boolean getDisplayingResult() {
 		return this.dispManager.getDisplayingResult();
 	}

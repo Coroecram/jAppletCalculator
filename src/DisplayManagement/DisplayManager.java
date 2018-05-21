@@ -13,7 +13,6 @@ public class DisplayManager {
 	private JTextArea histView;
 	private String mainDisplay;
 	private boolean decimalPoint,displayingResult,cleared;
-	private final String[] OPERATORS = new String[]{" + ", " - ", " x ", " \u00F7 ", " \u221A ", " = "};
 
 	public DisplayManager(JTextField mainText, JTextArea histView) {
 		this.mainText = mainText;
@@ -34,7 +33,6 @@ public class DisplayManager {
 		for (String hist : histDisp) {
 			histToDisplay.append(hist + "\n");
 		}
-		histToDisplay.delete(-2, -1);
 		
 		return histToDisplay.toString();
 	}

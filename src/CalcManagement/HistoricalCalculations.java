@@ -9,6 +9,8 @@ public class HistoricalCalculations {
 	private int histInd;
 	private boolean histCleared;
 	private boolean modified;
+	private int[] modifiedRows;
+	private final String[] OPERATORS = new String[]{" + ", " - ", " x ", " \u00F7 ", " \u221A ", " = "};
 
 	public HistoricalCalculations() {
 		histDisp = new ArrayList<String>();
@@ -16,17 +18,16 @@ public class HistoricalCalculations {
 		histInd = 0;
 		histCleared = true;
 		modified = false;
+		modifiedRows = new int[2];
 	}
 	
 	private void setDisplays() {
 		StringBuilder historicalText = new StringBuilder();
-		String mainDisplay = "0";
 		int operator;
 		double firstOperand;
-		double secondOperand;
 		
-		for (int i = 0; i < history.size(); i++) {
-			if (getHistory(i)[0] == -1) {
+		for (int i : modifiedRows) {
+			if (getHistory(i)[4] == 0) { // Check if row actually modified
 				break;
 			}
 			operator = getHistory(i)[0].intValue();
@@ -34,31 +35,20 @@ public class HistoricalCalculations {
 				if (operator % 4 == 0) {
 					String sqrtNestString = calcSqrtNestString(getHistory(i)[0].intValue(), getHistory(i)[2]);
 					historicalText.append(sqrtNestString);
-					mainDisplay = "" + getHistory(i)[3];
-					setDisplayingResult(true);
 				} else if (operator == 5) {
-					calcRows();
-					mainDisplay = "" + getHistory(i)[3];
+					histDisp.remove(i);
+					histDisp.add(i, "" + getHistory(i)[3]);
+					break;
 				}
-				mainDisplay = "" + getHistory(i)[3];
 			} else { 
-				setDisplayingResult(true);
 				firstOperand = getHistory(i)[1];
-				mainDisplay = "" + getHistory(i)[1];
 				historicalText.append(firstOperand);
 				historicalText.append(OPERATORS[operator]);
 			}
-			if (!sqrtOperand(getHistory(i)[0]) && i + 1 < history.size() && getHistory(i+1)[0] != -1) {
-				secondOperand = getHistory(i)[2];
-				historicalText.append(secondOperand);
-			}
-			if (i < history.size() -1) {
-				historicalText.append("\n");
-			}
+
+			histDisp.remove(i);
+			histDisp.add(i, "" + historicalText.toString());
 		}
-		
-		prevCalc.setText(historicalText.toString());
-		mainText.setText(mainDisplay);
 	}
 
 	private String calcSqrtNestString(int operators, Double base) {
@@ -105,7 +95,11 @@ public class HistoricalCalculations {
 	}
 
 	public ArrayList<String> getHistDisp() {
-		if (this.modified) {};
+		if (this.modified) {
+			setDisplays();
+			setModified(false);
+		};
+		
 		return histDisp;
 	}
 
@@ -116,5 +110,19 @@ public class HistoricalCalculations {
 		history.add(histInd, calc);
 	}
 
+	public int[] getModifiedRows() {
+		return modifiedRows;
+	}
 
+	public void setModifiedRows(int[] modifiedRows) {
+		this.modifiedRows = modifiedRows;
+	}
+
+	public void addModification(int histInd, int ind) {
+		getModifiedRows()[ind] = histInd;		
+	}
+
+	public void setModified(boolean b) {
+		this.modified = b;		
+	}
 }
