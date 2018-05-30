@@ -293,6 +293,9 @@ public class CalcManager {
 		if (length > 0 && !getDisplayingResult()) {
 			StringBuilder sb = new StringBuilder(currentDisplay);
 			sb.deleteCharAt(length-1);
+			if (sb.length() == 0) {
+				sb.append("0");
+			}
 			currentDisplay = sb.toString();
 			updateDisplays();
 		}
