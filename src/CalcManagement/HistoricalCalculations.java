@@ -104,7 +104,7 @@ public class HistoricalCalculations {
 	}
 
 	public void append(Double[] calc, int histInd) {
-		if (history.size() >= histInd) {
+		if (history.size() > histInd) {
 			history.remove(histInd);
 		}
 		history.add(histInd, calc);

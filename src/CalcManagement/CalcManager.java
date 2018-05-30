@@ -10,7 +10,7 @@ public class CalcManager {
 	private HistoricalCalculations histCalcs;
 	private int histInd;
 	private Double[][] workset;
-	private boolean worksetCleared;
+	private boolean firstOperation, firstCalc; // Flags to initialize workset
 	String currentDisplay;
 	private ArrayList<String> histDisp;
 	
@@ -21,7 +21,8 @@ public class CalcManager {
 		this.histInd = histCalcs.getHistInd();
 		currentDisplay = "0";
 		workset = new Double[2][];
-		worksetCleared = true;
+		firstOperation = true;
+		firstCalc = true;
 		updateDisplays();
 	}
 	
@@ -32,7 +33,7 @@ public class CalcManager {
 	
 	//Buttons that change display
 	public void button(String string) {
-		if (getDisplayingResult() || getCleared() && string != "0") {
+		if (getDisplayingResult() || (getCleared() && string != "0")) {
 			firstEntry(string);
 		} else {
 			notFirstEntry(string);
@@ -41,34 +42,42 @@ public class CalcManager {
 		updateDisplays();
 	}
 	
-	//Buttons that perform operations
-	public void button(int opCode) {
-		
-	}
-
 	private void firstEntry(String string) {
+		System.out.println("first");
 		if (string == ".") {
 			currentDisplay = "0.";
 			this.dispManager.setDecimalPoint(true);
+			this.dispManager.setDisplayingResult(false);
 		} else {
-			currentDisplay = string;
+			if (this.getDecimalPoint()) {
+				currentDisplay = currentDisplay + string;
+			} else {
+				currentDisplay = string;
+			}
+			this.dispManager.setCleared(false);
+			this.dispManager.setDisplayingResult(false);
 		}
-		this.dispManager.setCleared(false);
-		this.dispManager.setDisplayingResult(false);
 	}
 	
 	private void notFirstEntry(String string) {
+		System.out.println("NOT first");
 		if (string == ".") {
-			if (!getDecimalPoint()) {
+			if (!getDecimalPoint()) { // Do nothing if decimal point already there.
 				currentDisplay = currentDisplay + string;
 				this.dispManager.setDecimalPoint(true);
-			} // Do nothing if decimal point there.
+			}
 		} else {
-			currentDisplay = currentDisplay + string;
+			if (!getDisplayingResult()) {
+				System.out.println("NOT displaying result");
+				currentDisplay = currentDisplay + string;
+			} else {
+				System.out.println("hasbeen displaying result");
+				currentDisplay = string;
+			}
 		}		
 	}
 	
-	protected void calculate(int operator) {
+	public void button(int operator) {
 		Double[] prevCalc = workset[0];
 		Double[] currentCalc = workset[1];
 		
@@ -78,8 +87,10 @@ public class CalcManager {
 		System.out.println("calc operator: " + operator);
 		if (getCleared()) {
 			return;
-		// Check if there was previous calculation
-		} else if (prevCalc != null) {
+		} else if (firstOperation || firstCalc) { // Check if we have just started
+			// If first calculation we need to create the workset
+			initialOp(operator);
+		} else if (prevCalc != null) { // Check if there was previous calculation
 			System.out.println("are: " + prevCalc[0]);
 			double prevOp = prevCalc[0];
 			// Check for special prevOps sqrt(4) and equals(5)
@@ -134,22 +145,32 @@ public class CalcManager {
 					currentCalc[2] = Double.parseDouble(currentDisplay);
 					processCurrentCalc(operator);
 				}
-			} else {
-			currentCalc[0] = (double) operator;
-				// If first calculation then check if first operand is loaded. If it is, add second operand and move to prevCalc
-				if (currentCalc[1] != null) {
-					currentCalc[2] = Double.parseDouble(currentDisplay);
-					processCurrentCalc(operator);
-				} else {
-					currentCalc[1] = Double.parseDouble(currentDisplay);
-				}
 			}
 		}
 		
+		this.dispManager.setDecimalPoint(false);
+		this.dispManager.setDisplayingResult(true);
+		System.out.println("setDisplayingResult(true)");
 		updateDisplays();
 	}
 
+	private void initialOp(int operator) {
+		if (!firstOperation && firstCalc) {
+			workset[1][2] = Double.parseDouble(currentDisplay);
+			processCurrentCalc(operator);
+		} else {
+			Double firstOp = (double) operator;
+			workset[1] = new Double[]{ firstOp, Double.parseDouble(currentDisplay), null, null, 1.0 };
+			firstOperation = false;
+			if (operator == 4) {
+				workset[1][2] = Double.parseDouble(currentDisplay);
+				processCurrentCalc(operator);
+			}
+		}
+	}
+
 	private void processCurrentCalc(int operator) {
+		firstOperation = false;
 		Double result = executeCurrentOp();
 		currentDisplay = "" + result; // Change display to result
 		workset[1][3] = result; // Put in result
@@ -233,6 +254,7 @@ public class CalcManager {
 	}
 
 	public void clear() {
+		System.out.println("clear");
 		currentDisplay = "0";
 		clearHistory();
 		clearDisplay();

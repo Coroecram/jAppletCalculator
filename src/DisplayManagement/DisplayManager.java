@@ -24,7 +24,8 @@ public class DisplayManager {
 	}
 	
 	public void updateDisplays(String currentDisplay, ArrayList<String> histDisp) {
-		mainText.setText(currentDisplay);
+		String toDisplay = currentDisplay.endsWith(".0") ? currentDisplay.substring(0, currentDisplay.length()-2): currentDisplay;
+		mainText.setText(toDisplay);
 		histView.setText(parseHist(histDisp));
 	}
 	
