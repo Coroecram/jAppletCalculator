@@ -3,7 +3,7 @@ package CalcManagement;
 import java.util.ArrayList;
 
 public class HistoricalCalculations {
-	
+
 	private ArrayList<Double[]> history;
 	private ArrayList<String> histDisp;
 	private boolean histCleared;
@@ -12,14 +12,13 @@ public class HistoricalCalculations {
 	public HistoricalCalculations() {
 		clearHistory();
 	}
-	
+
 	private void setDisplay(int step) {
 		StringBuilder historicalText = new StringBuilder();
 		Double[] calculation = getHistory(history.size()-1);
 		int operator = calculation[0].intValue();
-		System.out.println("operator : " + operator);
 		double firstOperand = calculation[1];
-	
+
 		if (operator % 4 == 0 && operator != 0) {
 			String sqrtNestString = calcSqrtNestString(operator, calculation[2]);
 			historicalText.append(sqrtNestString);
@@ -28,7 +27,7 @@ public class HistoricalCalculations {
 			historicalText.append(" " + OPERATORS[operator]);
 			double secondOperand = calculation[2];
 			historicalText.append("\u221A" + "(" + Math.pow(secondOperand, 2) + ")");
-		} else { 
+		} else {
 			historicalText.append("" + firstOperand);
 			historicalText.append(" " + OPERATORS[operator]);
 			if (step > 1) {
@@ -45,39 +44,39 @@ public class HistoricalCalculations {
 		for (int i = 1; i <= numSqrt; i++) {
 			nested = "\u221A" + "(" + nested + ")";
 		}
-		
+
 		return nested;
 	}
-	
+
 	public Double[] getCurrentHistory() {
 		return getHistory(history.size() - 1);
 	}
-	
+
 	public Double[] getHistory(int i) {
 		return this.history.get(i);
 	}
-	
+
 	public boolean getHistCleared() {
 		return histCleared;
 	}
-	
+
 	public void setHistCleared(boolean b) {
 		histCleared = b;
 	}
-	
+
 	public void clearHistory() {
 		histDisp = new ArrayList<String>();
 		history = new ArrayList<Double[]>();
-		histCleared = true;		
+		histCleared = true;
 	}
 
-	public String getHistDisp() {		
+	public String getHistDisp() {
 		StringBuilder calcHistory = new StringBuilder();
 
 		for (String calc : histDisp) {
 			calcHistory.append(calc + "\n");
 		}
-		
+
 		return calcHistory.toString();
 	}
 
