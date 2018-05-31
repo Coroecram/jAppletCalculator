@@ -10,7 +10,7 @@ public class CalcManager {
 	private HistoricalCalculations histCalcs;
 	private int histInd;
 	private Double[][] workset;
-	private boolean firstOperation, firstCalc; // Flags to initialize workset
+	private boolean firstOperation, firstCalc, newOperation; // Flags to initialize workset
 	String currentDisplay;
 	private ArrayList<String> histDisp;
 	
@@ -18,12 +18,7 @@ public class CalcManager {
 		this.dispManager = dispManager;
 		this.histCalcs = histCalcs;
 		this.histDisp = this.histCalcs.getHistDisp();
-		this.histInd = histCalcs.getHistInd();
-		currentDisplay = "0";
-		workset = new Double[2][];
-		firstOperation = true;
-		firstCalc = true;
-		updateDisplays();
+		resetCalcManager();
 	}
 	
 	//Command to call when histCalcs or currentDisplay is ever changed
@@ -84,8 +79,11 @@ public class CalcManager {
 		// Operator Code: {0: +, 1: -, 2: *, 3: /, 4: sqrt, 5: =}
 		
 		System.out.println("calc operator: " + operator);
-		if (getCleared() || currentDisplay == "NaN") {
+		if (getCleared() || currentDisplay == "NaN") { // Do nothing
 			return;
+		} else if (operator < 4 && getDisplayingResult() && newOperation) {
+			System.out.println("change operator");
+			workset[1][0] = (double) operator;
 		} else if (firstOperation || firstCalc) { // Check if we have just started
 			// If first calculation we need to create the workset
 			System.out.println("initialop");
@@ -95,6 +93,15 @@ public class CalcManager {
 			} else {
 				System.out.println("initialop not 5");
 				initialOp(operator);
+			}
+		} else if (!getDisplayingResult()) {
+			if (newOperation) {
+				workset[1][0] = (double) operator;
+				workset[1][1] = Double.parseDouble(currentDisplay);
+				newOperation = false;
+			} else {
+				workset[1][2] = Double.parseDouble(currentDisplay);
+				processCurrentCalc(operator);
 			}
 		} else { // Check if there was previous calculation
 			System.out.println("prevop: " + workset[0][0]);
@@ -147,6 +154,7 @@ public class CalcManager {
 					workset[1][1] = workset[0][3];
 					System.out.println("workset[1][1]: " + workset[1][1]);
 					workset[1][0] = (double) operator;
+					newOperation = false;
 				}
 			} else {
 				if (operator == 4) {
@@ -200,6 +208,7 @@ public class CalcManager {
 		pushWorkset(workset[0], 0);
 		incrementHistInd();
 		workset[1] = new Double[]{null, null, null, null, 1.0}; // New row, modified (1.0) from nothing.
+		newOperation = true;
 		workset[1][0] = (double) operator;
 		workset[1][1] = workset[0][3];
 		pushWorkset(workset[1], 1);
@@ -274,9 +283,19 @@ public class CalcManager {
 
 	public void clear() {
 		System.out.println("clear");
-		currentDisplay = "0";
+		resetCalcManager();
 		clearHistory();
 		clearDisplay();
+		updateDisplays();
+	}
+
+	private void resetCalcManager() {
+		currentDisplay = "0";
+		firstOperation = true;
+		firstCalc = true;
+		newOperation = true;
+		workset = new Double[2][];
+		this.histInd = histCalcs.getHistInd();
 		updateDisplays();
 	}
 
@@ -343,6 +362,11 @@ public class CalcManager {
 	
 	private boolean getDecimalPoint() {
 		return this.dispManager.getDecimalPoint();
+	}
+
+	public void squareRoot() {
+		// TODO Auto-generated method stub
+		
 	}
 
 }
