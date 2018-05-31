@@ -10,7 +10,8 @@ public class CalcManager {
 	private HistoricalCalculations histCalcs;
 	private int histInd;
 	private Double[][] workset;
-	private boolean firstOperation, firstCalc, newOperation; // Flags to initialize workset
+	private boolean firstOperation, firstCalc;	// Flags to initialize workset
+	private boolean newOperation, firstOperand; // Flags for operation step
 	String currentDisplay;
 	private ArrayList<String> histDisp;
 	
@@ -72,114 +73,96 @@ public class CalcManager {
 	}
 	
 	public void button(int operator) {
-		// Previous Calculation = workset[0];
 		// Current Calculation = workset[1];
 		
 		// Workset array key: { Operator Code, First Operand, Second Operand, Result, Modified(bool 1/0) };
 		// Operator Code: {0: +, 1: -, 2: *, 3: /, 4: sqrt, 5: =}
 		
-		System.out.println("calc operator: " + operator);
 		if (getCleared() || currentDisplay == "NaN") { // Do nothing
 			return;
-		} else if (operator < 4 && getDisplayingResult() && newOperation) {
-			System.out.println("change operator");
-			workset[1][0] = (double) operator;
 		} else if (firstOperation || firstCalc) { // Check if we have just started
 			// If first calculation we need to create the workset
-			System.out.println("initialop");
-			if (firstOperation && operator == 5) {
-				System.out.println("initialop returning");
-				return;
-			} else {
-				System.out.println("initialop not 5");
-				initialOp(operator);
-			}
-		} else if (!getDisplayingResult()) {
-			if (newOperation) {
-				workset[1][0] = (double) operator;
-				workset[1][1] = Double.parseDouble(currentDisplay);
-				newOperation = false;
-			} else {
-				workset[1][2] = Double.parseDouble(currentDisplay);
-				processCurrentCalc(operator);
-			}
-		} else { // Check if there was previous calculation
-			System.out.println("prevop: " + workset[0][0]);
-			double prevOp = workset[0][0];
-			// Check for special prevOps sqrt(4) and equals(5)
-			if (prevOp >= 4) {
-				// Check if current and prevop were sqrt => nest operations
-				if (prevOp % 4 == 0 && operator == 4) {
-					if (Double.parseDouble(currentDisplay) < 0) { // Break calculator if squaring negative number
-						currentDisplay = "NaN";
-						updateDisplays();
-						return;
-					}
-					decrementHistInd();
-					exchangePrevCurrent();
-					String squares = "4" + workset[1][0];
-					workset[1][0] = Double.parseDouble(squares);
-					workset[1][4] = 1.0;
-					processCurrentCalc(operator);
-				} else if (prevOp == 5) {
-				// Change prevOp to currentOp if an equals operation and mark as modified (workset[1][4])
-					decrementHistInd();
-					exchangePrevCurrent();
-					workset[0] = null;
-					workset[1][0] = (double) operator;
-					workset[1][1] = workset[1][3];
-					workset[1][2] = null;
-					workset[1][3] = null;
-					workset[1][4] = 1.0;
-				} else if (operator == 4) {
-					if (Double.parseDouble(currentDisplay) < 0) { // Break calculator if squaring negative number
-						currentDisplay = "NaN";
-						updateDisplays();
-						return;
-					}
-					workset[1][0] = (double) operator;
-					workset[1][1] = workset[0][3];
-					workset[1][2] = workset[0][3];
-					processCurrentCalc(operator);
-				} else {
-					if (workset[1][1] == workset[0][3]) { // If we have set the new operations already
-						if (!getDisplayingResult()) { // If the result is not displayed, run calculation
-							workset[1][2] = Double.parseDouble(currentDisplay);
-							processCurrentCalc(operator);
-						} else { // Change operator
-							workset[1][0] = (double) operator;
-						}
-					}
-					// Move result to current operation if past was 4 but current is not
-					workset[1][1] = workset[0][3];
-					System.out.println("workset[1][1]: " + workset[1][1]);
-					workset[1][0] = (double) operator;
-					newOperation = false;
-				}
-			} else {
-				if (operator == 4) {
-					if (Double.parseDouble(currentDisplay) < 0) { // Break calculator if squaring negative number
-						currentDisplay = "NaN";
-						updateDisplays();
-						return;
-					}
-					workset[1][0] = (double) operator;
-					workset[1][1] = workset[0][3];
-					workset[1][2] = workset[0][3];
-					processCurrentCalc(operator);
-				} else if (!getDisplayingResult()) { // If the result is not displayed, run calculation
-					workset[1][2] = Double.parseDouble(currentDisplay);
-					processCurrentCalc(operator);
-				} else { // Change operator
-					workset[1][0] = (double) operator;
-				}
-			}
+			initialOp(operator);
+		} else if (newOperation) {
+			System.out.println("new operation");
+			workset[1][0] = (double) operator;
+			workset[1][1] = Double.parseDouble(currentDisplay);
+			newOperation = false;
+			firstOperand = true;
+			pushWorkset(workset[1]);
+		} else if (getDisplayingResult() && firstOperand) { // Change operator
+			System.out.println("changing operator");
+			workset[1][0] = (double) operator;
+			pushWorkset(workset[1]);
+		} else if (!getDisplayingResult() && firstOperand) {
+			System.out.println("adding second operand");
+			workset[1][2] = Double.parseDouble(currentDisplay);
+			processCurrentCalc(operator);
 		}
-		
+				
 		this.dispManager.setDecimalPoint(false);
 		this.dispManager.setDisplayingResult(true);
-		System.out.println("setDisplayingResult(true)");
 		updateDisplays();
+	}
+	
+	public void squareRoot() {
+		if (getCleared() || currentDisplay == "NaN") { // Do nothing
+			return;
+		}
+			if (Double.parseDouble(currentDisplay) < 0) { // Break calculator if squaring negative number
+				currentDisplay = "NaN";
+				updateDisplays();
+				return;
+			}
+			workset[1][0] = 4.0;
+			workset[1][1] = workset[0][3];
+			workset[1][2] = workset[0][3];
+			processCurrentCalc(4);
+			if (Double.parseDouble(currentDisplay) < 0) { // Break calculator if squaring negative number
+				currentDisplay = "NaN";
+				updateDisplays();
+				return;
+			}
+			workset[1][0] = 4.0;
+			workset[1][1] = workset[0][3];
+			workset[1][2] = workset[0][3];
+			processCurrentCalc(4);
+		double prevOp = workset[0][0];
+		// Check for special prevOps sqrt(4) and equals(5)
+		if (prevOp >= 4) {
+			// Check if current and prevop were sqrt => nest operations
+			if (prevOp % 4 == 0) {
+				if (Double.parseDouble(currentDisplay) < 0) { // Break calculator if squaring negative number
+					currentDisplay = "NaN";
+					updateDisplays();
+					return;
+				}
+				decrementHistInd();
+				exchangePrevCurrent();
+				String squares = "4" + workset[1][0];
+				workset[1][0] = Double.parseDouble(squares);
+				workset[1][4] = 1.0;
+				processCurrentCalc(4);
+			}
+		}
+	}
+
+	public void equals() {
+		if (getCleared() || currentDisplay == "NaN") { // Do nothing
+			return;
+		} else if (firstOperation) {
+			System.out.println("initialop returning");
+			return;
+		}
+			// Change prevOp to currentOp if an equals operation and mark as modified (workset[1][4])
+				decrementHistInd();
+				exchangePrevCurrent();
+				workset[0] = null;
+				workset[1][0] = 5.0;
+				workset[1][1] = workset[1][3];
+				workset[1][2] = null;
+				workset[1][3] = null;
+				workset[1][4] = 1.0;
 	}
 
 	private void initialOp(int operator) {
@@ -189,6 +172,7 @@ public class CalcManager {
 		} else {
 			Double firstOp = (double) operator;
 			workset[1] = new Double[]{ firstOp, Double.parseDouble(currentDisplay), null, null, 1.0 };
+			pushWorkset(workset[1]);
 			firstOperation = false;
 			if (operator == 4) {
 				workset[1][2] = Double.parseDouble(currentDisplay);
@@ -198,26 +182,36 @@ public class CalcManager {
 	}
 
 	private void processCurrentCalc(int operator) {
-		firstOperation = false;
-		firstCalc = false;
+		if (firstOperation) {
+			firstOperation = false;
+		}
+		if (firstCalc) {
+			firstCalc = false;
+		}
+		
 		Double result = executeCurrentOp();
 		currentDisplay = "" + result; // Change display to result
 		workset[1][3] = result; // Put in result
 		workset[1][4] = 1.0; // Row is modified
 		workset[0] = Arrays.copyOf(workset[1], 5);
-		pushWorkset(workset[0], 0);
+		pushWorkset(workset[0]);
 		incrementHistInd();
 		workset[1] = new Double[]{null, null, null, null, 1.0}; // New row, modified (1.0) from nothing.
 		newOperation = true;
-		workset[1][0] = (double) operator;
-		workset[1][1] = workset[0][3];
-		pushWorkset(workset[1], 1);
+		firstOperand = false;
+		if (operator != 5) {
+			workset[1][0] = (double) operator;
+			workset[1][1] = workset[0][3];
+			newOperation = false;
+			firstOperand = true;
+			System.out.println("processed and added first operand");
+		}
+		
+		pushWorkset(workset[1]);
 	}
 
-	private void pushWorkset(Double[] workset, int ind) {
+	private void pushWorkset(Double[] workset) {
 		histCalcs.append(workset, histInd);
-		histCalcs.addModification(histInd, ind);
-		histCalcs.setModified(true);
 	}
 
 	private Double executeCurrentOp() {
@@ -294,6 +288,7 @@ public class CalcManager {
 		firstOperation = true;
 		firstCalc = true;
 		newOperation = true;
+		firstOperand = false;
 		workset = new Double[2][];
 		this.histInd = histCalcs.getHistInd();
 		updateDisplays();
@@ -362,11 +357,6 @@ public class CalcManager {
 	
 	private boolean getDecimalPoint() {
 		return this.dispManager.getDecimalPoint();
-	}
-
-	public void squareRoot() {
-		// TODO Auto-generated method stub
-		
 	}
 
 }

@@ -200,7 +200,7 @@ public class CalculatorApp {
 		JButton equals = new JButton("=");
 		equals.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				calcManager.button(5);
+				calcManager.equals();
 			}
 		});
 		equals.setFont(new Font("Arial", Font.BOLD, 14));
@@ -251,7 +251,7 @@ public class CalculatorApp {
 		JButton squareroot = new JButton("\u221A");
 		squareroot.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				calcManager.button(4);
+				calcManager.squareRoot();
 			}
 		});
 		squareroot.setFont(new Font("Arial", Font.BOLD, 14));
