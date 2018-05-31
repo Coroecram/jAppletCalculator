@@ -109,19 +109,21 @@ public class CalcManager {
 		if (Double.parseDouble(currentDisplay) < 0) { // Break calculator if squaring negative number
 			currentDisplay = "NaN";
 		} else {
-			double prevOp = workset[0][0];
-			// Check for special prevOps sqrt(4) and equals(5)
-				// Check if current and prevop were sqrt => nest operations
-			if (prevOp % 4 == 0) {
-				exchangePrevCurrent();
-				String squares = "4" + workset[1][0];
-				workset[1][0] = Double.parseDouble(squares);
-				processCurrentCalc(4);
+			if (firstCalc) {
+				initialOp(4);
+				
 			} else {
-				workset[1][0] = 4.0;
-				workset[1][1] = Double.parseDouble(currentDisplay);
-				workset[1][2] = Double.parseDouble(currentDisplay);
-				processCurrentCalc(4);
+				double prevOp = workset[0][0];
+				// Check for special prevOps sqrt(4) and equals(5)
+					// Check if current and prevop were sqrt => nest operations
+				if (prevOp % 4 == 0) {
+					exchangePrevCurrent();
+					String squares = "4" + workset[1][0];
+					workset[1][0] = Double.parseDouble(squares);
+					processCurrentCalc(4);
+				} else {
+					sqrtDisplay();
+				}
 			}
 
 		}
@@ -129,6 +131,13 @@ public class CalcManager {
 		this.dispManager.setDecimalPoint(false);
 		this.dispManager.setDisplayingResult(true);
 		updateDisplays();
+	}
+
+	private void sqrtDisplay() {
+		workset[1][0] = 4.0;
+		workset[1][1] = Double.parseDouble(currentDisplay);
+		workset[1][2] = Double.parseDouble(currentDisplay);
+		processCurrentCalc(4);
 	}
 
 	public void equals() {
@@ -157,12 +166,12 @@ public class CalcManager {
 		} else {
 			Double firstOp = (double) operator;
 			workset[1] = new Double[]{ firstOp, Double.parseDouble(currentDisplay), null, null, 1.0 };
+			if (operator == 4) {
+				sqrtDisplay();
+				return;
+			}
 			pushWorkset(workset[1]);
 			firstOperation = false;
-			if (operator == 4) {
-				workset[1][2] = Double.parseDouble(currentDisplay);
-				processCurrentCalc(operator);
-			}
 		}
 	}
 
@@ -184,7 +193,7 @@ public class CalcManager {
 		workset[1] = new Double[]{null, null, null, null, 1.0}; // New row, modified (1.0) from nothing.
 		newOperation = true;
 		firstOperand = false;
-		if (operator != 5) {
+		if (operator < 4) {
 			workset[1][0] = (double) operator;
 			workset[1][1] = workset[0][3];
 			newOperation = false;
@@ -303,19 +312,12 @@ public class CalcManager {
 		if (!getCleared()) {
 			Double negatedVal = 0 - Double.parseDouble(currentDisplay);
 			currentDisplay = "" + negatedVal;
-			if (currentCalcIncomplete() && getDisplayingResult()) { // If displaying the first operand
+			if (firstOperand && getDisplayingResult()) { // If displaying the first operand
 				workset[1][1] = negatedVal;
-				if (workset[1][0] == 5) {
-					workset[1][4] = negatedVal; // Change the total for an = operations
-				}
 			}
 			updateDisplays();
 		}
 		
-	}
-
-	private boolean currentCalcIncomplete() {
-		return workset[1][2] == null;
 	}
 
 	private boolean getHistCleared() {
