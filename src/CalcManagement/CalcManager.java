@@ -106,18 +106,18 @@ public class CalcManager {
 			if (firstCalc) {
 				initialOp(4);
 			} else {
-				double prevOp = workset[0][0];
-				// Check for special prevOps sqrt(4) and equals(5)
-					// Check if current and prevop were sqrt => nest operations
-				if (prevOp % 4 == 0 && prevOp != 0) {
-					exchangePrevCurrent();
-					String squares = "4" + workset[1][0];
-					squares = Double.parseDouble(squares) > Integer.MAX_VALUE ? "444444444" : squares;
-					workset[1][0] = Double.parseDouble(squares);
-					processCurrentCalc(4);
+				if (firstOperand) {
+					secondOperandSqrt();
 				} else {
-					if (firstOperand) {
-						secondOperandSqrt();
+					double prevOp = workset[0][0];
+					// Check for special prevOps sqrt(4) and equals(5)
+						// Check if current and prevop were sqrt => nest operations
+					if (prevOp % 4 == 0 && prevOp != 0) {
+						exchangePrevCurrent();
+						String squares = "4" + workset[1][0];
+						squares = Double.parseDouble(squares) > Integer.MAX_VALUE ? "444444444" : squares;
+						workset[1][0] = Double.parseDouble(squares);
+						processCurrentCalc(4);
 					} else {
 						sqrtDisplay();
 					}
