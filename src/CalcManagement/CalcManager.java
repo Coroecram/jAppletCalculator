@@ -39,10 +39,7 @@ public class CalcManager {
 	}
 	
 	private void firstEntry(String string) {
-		if (currentDisplay == "NaN") { // Force clear after squaring negative
-			System.out.println("firstentry NaN");
-			return;
-		} else if (string == ".") {
+		if (string == ".") {
 			currentDisplay = "0.";
 			this.dispManager.setDecimalPoint(true);
 			this.dispManager.setDisplayingResult(false);
@@ -109,42 +106,29 @@ public class CalcManager {
 		if (getCleared() || currentDisplay == "NaN") { // Do nothing
 			return;
 		}
-			if (Double.parseDouble(currentDisplay) < 0) { // Break calculator if squaring negative number
-				currentDisplay = "NaN";
-				updateDisplays();
-				return;
-			}
-			workset[1][0] = 4.0;
-			workset[1][1] = workset[0][3];
-			workset[1][2] = workset[0][3];
-			processCurrentCalc(4);
-			if (Double.parseDouble(currentDisplay) < 0) { // Break calculator if squaring negative number
-				currentDisplay = "NaN";
-				updateDisplays();
-				return;
-			}
-			workset[1][0] = 4.0;
-			workset[1][1] = workset[0][3];
-			workset[1][2] = workset[0][3];
-			processCurrentCalc(4);
-		double prevOp = workset[0][0];
-		// Check for special prevOps sqrt(4) and equals(5)
-		if (prevOp >= 4) {
-			// Check if current and prevop were sqrt => nest operations
+		if (Double.parseDouble(currentDisplay) < 0) { // Break calculator if squaring negative number
+			currentDisplay = "NaN";
+		} else {
+			double prevOp = workset[0][0];
+			// Check for special prevOps sqrt(4) and equals(5)
+				// Check if current and prevop were sqrt => nest operations
 			if (prevOp % 4 == 0) {
-				if (Double.parseDouble(currentDisplay) < 0) { // Break calculator if squaring negative number
-					currentDisplay = "NaN";
-					updateDisplays();
-					return;
-				}
-				decrementHistInd();
 				exchangePrevCurrent();
 				String squares = "4" + workset[1][0];
 				workset[1][0] = Double.parseDouble(squares);
-				workset[1][4] = 1.0;
+				processCurrentCalc(4);
+			} else {
+				workset[1][0] = 4.0;
+				workset[1][1] = Double.parseDouble(currentDisplay);
+				workset[1][2] = Double.parseDouble(currentDisplay);
 				processCurrentCalc(4);
 			}
+
 		}
+		
+		this.dispManager.setDecimalPoint(false);
+		this.dispManager.setDisplayingResult(true);
+		updateDisplays();
 	}
 
 	public void equals() {
@@ -261,7 +245,6 @@ public class CalcManager {
 	
 	private void exchangePrevCurrent() {
 		workset[1] = Arrays.copyOf(workset[0], 5);
-		System.out.println("prev operators!!! " + workset[1][0]);
 	}
 
 	private Object[] getHistory(int ind) {
