@@ -7,6 +7,7 @@ import javax.swing.SwingConstants;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.applet.Applet;
 import java.awt.Color;
 import javax.swing.JScrollPane;
 import CalcManagement.CalcManager;
@@ -14,32 +15,19 @@ import CalcManagement.HistoricalCalculations;
 import DisplayManagement.DisplayManager;
 import java.awt.SystemColor;
 
-public class CalculatorApp {
-
-	private JFrame frmCalculator;
+public class CalculatorApp extends Applet {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 3787764276495825005L;
 	private JTextField mainText;
 	private JTextArea histView;
 	private DisplayManager dispManager;
 	private CalcManager calcManager;
 	private HistoricalCalculations histCalcs;
-	
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					CalculatorApp window = new CalculatorApp();
-					window.frmCalculator.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
 
-	public CalculatorApp() {
+	public void init() {
 		initialize();
 		histCalcs = new HistoricalCalculations();
 		dispManager = new DisplayManager(mainText, histView);
@@ -49,13 +37,10 @@ public class CalculatorApp {
 	/**
 	 * Initialize the contents of the frame.
 	 */	
-	private void initialize() {
-		frmCalculator = new JFrame();
-		frmCalculator.getContentPane().setBackground(Color.WHITE);
-		frmCalculator.setTitle("Calculator");
-		frmCalculator.setBounds(100, 100, 343, 450);
-		frmCalculator.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frmCalculator.getContentPane().setLayout(null);
+	public void initialize() {
+		setBackground(Color.WHITE);
+		setBounds(100, 100, 343, 450);
+		setLayout(null);
 		
 		mainText = new JTextField();
 		mainText.setEditable(false);
@@ -63,14 +48,14 @@ public class CalculatorApp {
 		mainText.setHorizontalAlignment(SwingConstants.RIGHT);
 		mainText.setFont(new Font("Verdana", Font.PLAIN, 24));
 		mainText.setBounds(5, 66, 315, 64);
-		frmCalculator.getContentPane().add(mainText);
+		add(mainText);
 		mainText.setColumns(10);
 		
 		histView = new JTextArea();
 		JScrollPane scrollPane = new JScrollPane();
 		scrollPane.setViewportBorder(null);
 		scrollPane.setBounds(5, 11, 315, 44);
-		frmCalculator.getContentPane().add(scrollPane);
+		add(scrollPane);
 		histView.setBackground(SystemColor.inactiveCaptionBorder);
 		histView.setRows(5);
 		scrollPane.setViewportView(histView);
@@ -85,7 +70,7 @@ public class CalculatorApp {
 		});
 		negative.setFont(new Font("Arial", Font.BOLD, 14));
 		negative.setBounds(5, 355, 75, 50);
-		frmCalculator.getContentPane().add(negative);
+		add(negative);
 		
 		JButton zero = new JButton("0");
 		zero.addActionListener(new ActionListener() {
@@ -95,7 +80,7 @@ public class CalculatorApp {
 		});
 		zero.setFont(new Font("Arial", Font.BOLD, 14));
 		zero.setBounds(85, 355, 75, 50);
-		frmCalculator.getContentPane().add(zero);
+		add(zero);
 		
 		JButton one = new JButton("1");
 		one.addActionListener(new ActionListener() {
@@ -105,7 +90,7 @@ public class CalculatorApp {
 		});
 		one.setFont(new Font("Arial", Font.BOLD, 14));
 		one.setBounds(5, 300, 75, 50);
-		frmCalculator.getContentPane().add(one);
+		add(one);
 		
 		JButton two = new JButton("2");
 		two.addActionListener(new ActionListener() {
@@ -115,7 +100,7 @@ public class CalculatorApp {
 		});
 		two.setFont(new Font("Arial", Font.BOLD, 14));
 		two.setBounds(85, 300, 75, 50);
-		frmCalculator.getContentPane().add(two);
+		add(two);
 		
 		JButton three = new JButton("3");
 		three.addActionListener(new ActionListener() {
@@ -125,7 +110,7 @@ public class CalculatorApp {
 		});
 		three.setFont(new Font("Arial", Font.BOLD, 14));
 		three.setBounds(165, 300, 75, 50);
-		frmCalculator.getContentPane().add(three);
+		add(three);
 		
 		JButton four = new JButton("4");
 		four.addActionListener(new ActionListener() {
@@ -135,7 +120,7 @@ public class CalculatorApp {
 		});
 		four.setFont(new Font("Arial", Font.BOLD, 14));
 		four.setBounds(5, 245, 75, 50);
-		frmCalculator.getContentPane().add(four);
+		add(four);
 		
 		JButton five = new JButton("5");
 		five.addActionListener(new ActionListener() {
@@ -145,7 +130,7 @@ public class CalculatorApp {
 		});
 		five.setFont(new Font("Arial", Font.BOLD, 14));
 		five.setBounds(85, 245, 75, 50);
-		frmCalculator.getContentPane().add(five);
+		add(five);
 		
 		JButton six = new JButton("6");
 		six.addActionListener(new ActionListener() {
@@ -155,7 +140,7 @@ public class CalculatorApp {
 		});
 		six.setFont(new Font("Arial", Font.BOLD, 14));
 		six.setBounds(165, 245, 75, 50);
-		frmCalculator.getContentPane().add(six);
+		add(six);
 		
 		JButton seven = new JButton("7");
 		seven.addActionListener(new ActionListener() {
@@ -165,7 +150,7 @@ public class CalculatorApp {
 		});
 		seven.setFont(new Font("Arial", Font.BOLD, 14));
 		seven.setBounds(5, 190, 75, 50);
-		frmCalculator.getContentPane().add(seven);
+		add(seven);
 		
 		JButton eight = new JButton("8");
 		eight.addActionListener(new ActionListener() {
@@ -175,7 +160,7 @@ public class CalculatorApp {
 		});
 		eight.setFont(new Font("Arial", Font.BOLD, 14));
 		eight.setBounds(85, 190, 75, 50);
-		frmCalculator.getContentPane().add(eight);
+		add(eight);
 		
 		JButton nine = new JButton("9");
 		nine.addActionListener(new ActionListener() {
@@ -185,7 +170,7 @@ public class CalculatorApp {
 		});
 		nine.setFont(new Font("Arial", Font.BOLD, 14));
 		nine.setBounds(165, 190, 75, 50);
-		frmCalculator.getContentPane().add(nine);
+		add(nine);
 		
 		JButton decimal = new JButton(".");
 		decimal.setFont(new Font("Arial", Font.BOLD, 14));
@@ -195,7 +180,7 @@ public class CalculatorApp {
 			}
 		});
 		decimal.setBounds(165, 355, 75, 50);
-		frmCalculator.getContentPane().add(decimal);
+		add(decimal);
 		
 		JButton equals = new JButton("=");
 		equals.addActionListener(new ActionListener() {
@@ -205,7 +190,7 @@ public class CalculatorApp {
 		});
 		equals.setFont(new Font("Arial", Font.BOLD, 14));
 		equals.setBounds(245, 355, 75, 50);
-		frmCalculator.getContentPane().add(equals);
+		add(equals);
 	
 		JButton addition = new JButton("+");
 		addition.addActionListener(new ActionListener() {
@@ -215,7 +200,7 @@ public class CalculatorApp {
 		});
 		addition.setFont(new Font("Arial", Font.BOLD, 14));
 		addition.setBounds(245, 300, 75, 50);
-		frmCalculator.getContentPane().add(addition);
+		add(addition);
 		
 		JButton subtract = new JButton("-");
 		subtract.setFont(new Font("Arial", Font.BOLD, 14));
@@ -225,7 +210,7 @@ public class CalculatorApp {
 			}
 		});
 		subtract.setBounds(245, 245, 75, 50);
-		frmCalculator.getContentPane().add(subtract);		
+		add(subtract);		
 		
 		JButton multiply = new JButton("x");
 		multiply.addActionListener(new ActionListener() {
@@ -235,7 +220,7 @@ public class CalculatorApp {
 		});
 		multiply.setFont(new Font("Arial", Font.BOLD, 14));
 		multiply.setBounds(245, 190, 75, 50);
-		frmCalculator.getContentPane().add(multiply);
+		add(multiply);
 		
 		JButton divide = new JButton("\u00F7");
 		divide.addActionListener(new ActionListener() {
@@ -245,7 +230,7 @@ public class CalculatorApp {
 		});
 		divide.setFont(new Font("Arial", Font.BOLD, 14));
 		divide.setBounds(245, 135, 75, 50);
-		frmCalculator.getContentPane().add(divide);
+		add(divide);
 		
 		//SquareRoot Button
 		JButton squareroot = new JButton("\u221A");
@@ -256,7 +241,7 @@ public class CalculatorApp {
 		});
 		squareroot.setFont(new Font("Arial", Font.BOLD, 14));
 		squareroot.setBounds(5, 135, 75, 50);
-		frmCalculator.getContentPane().add(squareroot);
+		add(squareroot);
 		
 		JButton clear = new JButton("C");
 		clear.addActionListener(new ActionListener() {
@@ -266,7 +251,7 @@ public class CalculatorApp {
 		});
 		clear.setFont(new Font("Arial", Font.BOLD, 14));
 		clear.setBounds(85, 135, 75, 50);
-		frmCalculator.getContentPane().add(clear);
+		add(clear);
 		
 		JButton backspace = new JButton("del");
 		backspace.addActionListener(new ActionListener() {
@@ -276,7 +261,7 @@ public class CalculatorApp {
 		});
 		backspace.setFont(new Font("Arial", Font.BOLD, 14));
 		backspace.setBounds(165, 135, 75, 50);
-		frmCalculator.getContentPane().add(backspace);
+		add(backspace);
 
 	}
 }
