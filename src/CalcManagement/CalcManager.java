@@ -150,19 +150,20 @@ public class CalcManager {
 	public void equals() {
 		if (getCleared() || currentDisplay == "NaN") { // Do nothing
 			return;
-		} else if (firstOperation) {
-			System.out.println("initialop returning");
-			return;
+		} else if (!firstOperation && firstCalc) {
+			initialOp(5);
+			this.dispManager.setDecimalPoint(false);
+			this.dispManager.setDisplayingResult(true);
+			updateDisplays();
+		} else if (!getDisplayingResult() && firstOperand) {
+			System.out.println("adding second operand");
+			workset[1][2] = Double.parseDouble(currentDisplay);
+			processCurrentCalc(5);
+			this.dispManager.setDecimalPoint(false);
+			this.dispManager.setDisplayingResult(true);
+			updateDisplays();
 		}
-			// Change prevOp to currentOp if an equals operation and mark as modified (workset[1][4])
-				decrementHistInd();
-				exchangePrevCurrent();
-				workset[0] = null;
-				workset[1][0] = 5.0;
-				workset[1][1] = workset[1][3];
-				workset[1][2] = null;
-				workset[1][3] = null;
-				workset[1][4] = 1.0;
+		
 	}
 
 	private void initialOp(int operator) {
