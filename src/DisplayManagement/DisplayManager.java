@@ -23,19 +23,10 @@ public class DisplayManager {
 		cleared = true;
 	}
 	
-	public void updateDisplays(String currentDisplay, ArrayList<String> histDisp) {
+	public void updateDisplays(String currentDisplay, String histDisp) {
 		String toDisplay = currentDisplay.endsWith(".0") ? currentDisplay.substring(0, currentDisplay.length()-2): currentDisplay;
 		mainText.setText(toDisplay);
-		histView.setText(parseHist(histDisp));
-	}
-	
-	private String parseHist(ArrayList<String> histDisp) {
-		StringBuilder histToDisplay = new StringBuilder();
-		for (String hist : histDisp) {
-			histToDisplay.append(hist + "\n");
-		}
-		
-		return histToDisplay.toString();
+		histView.setText(histDisp);
 	}
 	
 	public void setCleared(boolean b) {

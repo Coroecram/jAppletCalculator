@@ -6,49 +6,37 @@ public class HistoricalCalculations {
 	
 	private ArrayList<Double[]> history;
 	private ArrayList<String> histDisp;
-	private int histInd;
 	private boolean histCleared;
-	private boolean modified;
-	private int[] modifiedRows;
 	private final String[] OPERATORS = new String[]{" + ", " - ", " x ", " \u00F7 ", " \u221A ", " = "};
 
 	public HistoricalCalculations() {
-		histDisp = new ArrayList<String>();
-		history = new ArrayList<Double[]>();
-		histInd = 0;
-		histCleared = true;
-		modified = false;
-		modifiedRows = new int[2];
+		clearHistory();
 	}
 	
-	private void setDisplays() {
+	private void setDisplay(int step) {
 		StringBuilder historicalText = new StringBuilder();
-		int operator;
-		double firstOperand;
-		
-		for (int i : modifiedRows) {
-			if (getHistory(i)[4] == 0) { // Check if row actually modified
-				break;
+		Double[] calculation = getHistory(history.size()-1);
+		int operator = calculation[0].intValue();
+		System.out.println("operator : " + operator);
+		double firstOperand = calculation[1];
+	
+		if (operator % 4 == 0 && operator != 0) {
+			String sqrtNestString = calcSqrtNestString(operator, calculation[2]);
+			historicalText.append(sqrtNestString);
+		} else if (step == 5) { //Second Operand sqrt special
+			historicalText.append("" + firstOperand);
+			historicalText.append(" " + OPERATORS[operator]);
+			double secondOperand = calculation[2];
+			historicalText.append("\u221A" + "(" + Math.pow(secondOperand, 2) + ")");
+		} else { 
+			historicalText.append("" + firstOperand);
+			historicalText.append(" " + OPERATORS[operator]);
+			if (step > 1) {
+				double secondOperand = calculation[2];
+				historicalText.append(" " + secondOperand);
 			}
-			operator = getHistory(i)[0].intValue();
-			if (operator >= 4) {
-				if (operator % 4 == 0) {
-					String sqrtNestString = calcSqrtNestString(getHistory(i)[0].intValue(), getHistory(i)[2]);
-					historicalText.append(sqrtNestString);
-				} else if (operator == 5) {
-					histDisp.remove(i);
-					histDisp.add(i, "" + getHistory(i)[3]);
-					break;
-				}
-			} else { 
-				firstOperand = getHistory(i)[1];
-				historicalText.append(firstOperand);
-				historicalText.append(OPERATORS[operator]);
-			}
-
-			histDisp.remove(i);
-			histDisp.add(i, "" + historicalText.toString());
 		}
+		histDisp.add("" + historicalText.toString());
 	}
 
 	private String calcSqrtNestString(int operators, Double base) {
@@ -62,7 +50,7 @@ public class HistoricalCalculations {
 	}
 	
 	public Double[] getCurrentHistory() {
-		return this.history.get(histInd);
+		return getHistory(history.size() - 1);
 	}
 	
 	public Double[] getHistory(int i) {
@@ -77,52 +65,33 @@ public class HistoricalCalculations {
 		histCleared = b;
 	}
 	
-	public int getHistInd() {
-		return this.histInd;
-	}
-	
-	public void incrementHistInd() {
-		this.histInd = histInd + 1;
-	}
-	
-	public void decrementHistInd() {
-		this.histInd = histInd - 1;
-	}
-	
 	public void clearHistory() {
-		// TODO Auto-generated method stub
-		
+		histDisp = new ArrayList<String>();
+		history = new ArrayList<Double[]>();
+		histCleared = true;		
 	}
 
-	public ArrayList<String> getHistDisp() {
-		if (this.modified) {
-			setDisplays();
-			setModified(false);
-		};
-		
-		return histDisp;
-	}
+	public String getHistDisp() {		
+		StringBuilder calcHistory = new StringBuilder();
 
-	public void append(Double[] calc, int histInd) {
-		if (history.size() > histInd) {
-			history.remove(histInd);
+		for (String calc : histDisp) {
+			calcHistory.append(calc + "\n");
 		}
-		history.add(histInd, calc);
+		
+		return calcHistory.toString();
 	}
 
-	public int[] getModifiedRows() {
-		return modifiedRows;
-	}
-
-	public void setModifiedRows(int[] modifiedRows) {
-		this.modifiedRows = modifiedRows;
-	}
-
-	public void addModification(int histInd, int ind) {
-		getModifiedRows()[ind] = histInd;		
-	}
-
-	public void setModified(boolean b) {
-		this.modified = b;		
+	public void append(Double[] calc, int step) {
+		if (step > 1) {
+			if (step > 4) { // nested sqrt is special case
+				history.remove(history.size() - 1);
+				histDisp.remove(histDisp.size() - 1);
+			} else if (step < 4) {
+				history.remove(history.size() - 1);
+				histDisp.remove(histDisp.size() - 1);
+			} // note we do nothing if first sqrt
+		}
+		history.add(calc);
+		setDisplay(step);
 	}
 }

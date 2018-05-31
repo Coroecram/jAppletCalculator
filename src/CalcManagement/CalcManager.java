@@ -8,23 +8,20 @@ import DisplayManagement.DisplayManager;
 public class CalcManager {
 	private DisplayManager dispManager;
 	private HistoricalCalculations histCalcs;
-	private int histInd;
 	private Double[][] workset;
 	private boolean firstOperation, firstCalc;	// Flags to initialize workset
 	private boolean newOperation, firstOperand; // Flags for operation step
 	String currentDisplay;
-	private ArrayList<String> histDisp;
 	
 	public CalcManager(DisplayManager dispManager, HistoricalCalculations histCalcs) {
 		this.dispManager = dispManager;
 		this.histCalcs = histCalcs;
-		this.histDisp = this.histCalcs.getHistDisp();
 		resetCalcManager();
 	}
 	
 	//Command to call when histCalcs or currentDisplay is ever changed
 	private void updateDisplays() {
-		dispManager.updateDisplays(currentDisplay, histDisp);
+		dispManager.updateDisplays(currentDisplay, this.histCalcs.getHistDisp());
 	}
 	
 	//Buttons that change display
@@ -81,18 +78,15 @@ public class CalcManager {
 			// If first calculation we need to create the workset
 			initialOp(operator);
 		} else if (newOperation) {
-			System.out.println("new operation");
 			workset[1][0] = (double) operator;
 			workset[1][1] = Double.parseDouble(currentDisplay);
 			newOperation = false;
 			firstOperand = true;
-			pushWorkset(workset[1]);
+			pushWorkset(workset[1], 1);
 		} else if (getDisplayingResult() && firstOperand) { // Change operator
-			System.out.println("changing operator");
 			workset[1][0] = (double) operator;
-			pushWorkset(workset[1]);
+			pushWorkset(workset[1], 1);
 		} else if (!getDisplayingResult() && firstOperand) {
-			System.out.println("adding second operand");
 			workset[1][2] = Double.parseDouble(currentDisplay);
 			processCurrentCalc(operator);
 		}
@@ -111,18 +105,22 @@ public class CalcManager {
 		} else {
 			if (firstCalc) {
 				initialOp(4);
-				
 			} else {
 				double prevOp = workset[0][0];
 				// Check for special prevOps sqrt(4) and equals(5)
 					// Check if current and prevop were sqrt => nest operations
-				if (prevOp % 4 == 0) {
+				if (prevOp % 4 == 0 && prevOp != 0) {
 					exchangePrevCurrent();
 					String squares = "4" + workset[1][0];
+					squares = Double.parseDouble(squares) > Integer.MAX_VALUE ? "444444444" : squares;
 					workset[1][0] = Double.parseDouble(squares);
 					processCurrentCalc(4);
 				} else {
-					sqrtDisplay();
+					if (firstOperand) {
+						secondOperandSqrt();
+					} else {
+						sqrtDisplay();
+					}
 				}
 			}
 
@@ -149,7 +147,6 @@ public class CalcManager {
 			this.dispManager.setDisplayingResult(true);
 			updateDisplays();
 		} else if (!getDisplayingResult() && firstOperand) {
-			System.out.println("adding second operand");
 			workset[1][2] = Double.parseDouble(currentDisplay);
 			processCurrentCalc(5);
 			this.dispManager.setDecimalPoint(false);
@@ -161,16 +158,25 @@ public class CalcManager {
 
 	private void initialOp(int operator) {
 		if (!firstOperation && firstCalc) {
-			workset[1][2] = Double.parseDouble(currentDisplay);
-			processCurrentCalc(operator);
+			if (operator == 4) {
+				if (Double.parseDouble(currentDisplay) < 0) { // Break calculator if squaring negative number
+					currentDisplay = "NaN";
+					return;
+				}
+				secondOperandSqrt();
+				firstCalc = false;
+			} else {
+				workset[1][2] = Double.parseDouble(currentDisplay);
+				processCurrentCalc(operator);
+			}
 		} else {
 			Double firstOp = (double) operator;
-			workset[1] = new Double[]{ firstOp, Double.parseDouble(currentDisplay), null, null, 1.0 };
+			workset[1] = new Double[]{ firstOp, Double.parseDouble(currentDisplay), null, null };
 			if (operator == 4) {
 				sqrtDisplay();
 				return;
 			}
-			pushWorkset(workset[1]);
+			pushWorkset(workset[1], 1);
 			firstOperation = false;
 		}
 	}
@@ -186,11 +192,13 @@ public class CalcManager {
 		Double result = executeCurrentOp();
 		currentDisplay = "" + result; // Change display to result
 		workset[1][3] = result; // Put in result
-		workset[1][4] = 1.0; // Row is modified
-		workset[0] = Arrays.copyOf(workset[1], 5);
-		pushWorkset(workset[0]);
-		incrementHistInd();
-		workset[1] = new Double[]{null, null, null, null, 1.0}; // New row, modified (1.0) from nothing.
+		workset[0] = Arrays.copyOf(workset[1], 5); // Move current op to prev op
+		if (operator % 4 == 0) {
+			pushWorkset(workset[0], workset[0][0].intValue()); // push down operator to see if nested
+		} else {
+			pushWorkset(workset[0], 2);
+		}
+		workset[1] = new Double[]{null, null, null, null}; // New row to process
 		newOperation = true;
 		firstOperand = false;
 		if (operator < 4) {
@@ -198,14 +206,25 @@ public class CalcManager {
 			workset[1][1] = workset[0][3];
 			newOperation = false;
 			firstOperand = true;
-			System.out.println("processed and added first operand");
-		}
+			pushWorkset(workset[1], 1);
+		}		
 		
-		pushWorkset(workset[1]);
+	}
+	
+	private void secondOperandSqrt() {
+		workset[1][2] = Math.sqrt(Double.parseDouble(currentDisplay));
+		Double result = executeCurrentOp();
+		currentDisplay = "" + result; // Change display to result
+		workset[1][3] = result; // Put in result
+		workset[0] = Arrays.copyOf(workset[1], 5); // Move current op to prev op
+		pushWorkset(workset[0], 5);
+		workset[1] = new Double[]{null, null, null, null}; // New row to process
+		newOperation = true;
+		firstOperand = false;
 	}
 
-	private void pushWorkset(Double[] workset) {
-		histCalcs.append(workset, histInd);
+	private void pushWorkset(Double[] workset, int step) {
+		histCalcs.append(workset, step);
 	}
 
 	private Double executeCurrentOp() {
@@ -217,38 +236,30 @@ public class CalcManager {
 			operator = operator % 10;
 		}
 		
-		System.out.println("operator: " + operator);
 		// Operator Code: {0: +, 1: -, 2: *, 3: /, 4: sqrt, 5: =}
 		switch(operator) {
 			case(0):
-				System.out.println("0");
 				result = workset[1][1] + workset[1][2];
 				break;
 			case(1):
-				System.out.println("1");
 				result = workset[1][1] - workset[1][2];
 				break;
 			case(2):
-				System.out.println("2");
 				result = workset[1][1] * workset[1][2];
 				break;
 			case(3):
-				System.out.println("3");
 				result = workset[1][1] / workset[1][2];
 				break;
 			case(4):
-				//Hold the root for the nested string
-				System.out.println("4");
 				result = calcNestSqrtDbl(workset[1][0].intValue(), workset[1][2]); // workset[1][2] being the root number of the sqrts are nested
 				break;
 			case(5):
-				System.out.println("5");
 				result = Double.parseDouble(currentDisplay);
 				break;
 			default:
 			
 		}
-		System.out.println("result: " + result);
+
 		return result;
 	}
 	
@@ -256,20 +267,7 @@ public class CalcManager {
 		workset[1] = Arrays.copyOf(workset[0], 5);
 	}
 
-	private Object[] getHistory(int ind) {
-		return this.histCalcs.getHistory(ind);
-	}
-
-	private void incrementHistInd() {
-		this.histCalcs.incrementHistInd();
-	}
-	
-	private void decrementHistInd() {
-		this.histCalcs.decrementHistInd();
-	}
-
 	public void clear() {
-		System.out.println("clear");
 		resetCalcManager();
 		clearHistory();
 		clearDisplay();
@@ -283,7 +281,6 @@ public class CalcManager {
 		newOperation = true;
 		firstOperand = false;
 		workset = new Double[2][];
-		this.histInd = histCalcs.getHistInd();
 		updateDisplays();
 	}
 
@@ -330,6 +327,7 @@ public class CalcManager {
 		for (int i = 0; i < numSqrt; i++) {
 			value = Math.sqrt(value);
 		}
+		
 		return value;
 	}
 	
